@@ -7,10 +7,10 @@ vBulletin 4 plugin for creating private message 'threaded' view.
 
 Threaded PM system for vBulletin 4.0+ to help improve the vBulletin forum experience for administrators and users. 
 
-This tool is now in the public domain. It needs improvement. I no longer support or develop this plugin. I will accept merge requests though. 
+This tool is now in the public domain. It needs improvement. I no longer support or develop this plugin. I will accept merge requests. Welcome to post issues. 
 
 
-### Features/Benefits of Threaded PMs Plugin ###
+### Features/Benefits ###
 
 * Turn default PM system into a 'threaded' post & reply system.
 * Keep history of PM conversation in a single thread, complete with pagination controls and pm-order-sorting.
