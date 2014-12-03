@@ -1,0 +1,893 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<product productid="pm_threads" active="1">
+	<title>Threaded PMs</title>
+	<description>View PM Chains as Threads and Posts</description>
+	<version>2.0</version>
+	<url>http://www.hatnohat.com</url>
+	<versioncheckurl />
+	<dependencies>
+	</dependencies>
+	<codes>
+	</codes>
+	<templates>
+		<template name="pmthreads.css" templatetype="template" date="1303969770" username="nitroviper" version="1.0"><![CDATA[.pmthreads_table_container {padding:10px;}
+.pmthreads_table {width:100%;margin:0 auto;}
+.pmthreads_table thead {background: {vb:stylevar blocksubhead_background};}
+.pmthreads_table th {text-align:left;padding:5px;border: {vb:stylevar blocksubhead_border};}
+.pmthreads_table td {text-align:left;padding:5px;border: {vb:stylevar blocksubhead_border};}
+.pmthreads_table td strong {font-weight:bold;}
+]]></template>
+		<template name="pm_showthread" templatetype="template" date="1306964433" username="nitroviper" version="1.0"><![CDATA[<vb:if condition="$show['receiptprompt']">
+<script type="text/javascript">
+<!--
+<vb:if condition="$show['receiptpopup']">
+if (window.attachEvent)
+{
+	window.attachEvent('onload', askReceipt);
+}
+else if(window.addEventListener)
+{
+	window.addEventListener('load', askReceipt, false);
+}
+function askReceipt()
+{
+	doReceipt(confirm("{vb:raw receipt_question_js}"));
+}
+</vb:if>
+function doReceipt(yesno)
+{
+	// do image method too to get around popup blockers
+	var img_obj = new Image();
+	img_obj.src = "private.php?{vb:raw session.sessionurl}do=dopmreceipt&type=img&pmid={vb:raw pm.pmid}&confirm=" + (yesno ? 1 : 0);
+	if (yesno)
+	{
+		fetch_object('receipt').style.display = 'none';
+	}
+}
+// -->
+</script>
+
+</vb:if>
+<vb:if condition="$show['custom_quickreply']">
+	{vb:raw vBeditTemplate.clientscript}
+	<form action="private.php?do=insertpm&amp;pmid={vb:raw pm.pmid}" class="block" method="post" id="message_form" onsubmit="return vB_Editor['{vb:raw editorid}'].prepare_submit(0, 0)">
+		<input type="hidden" name="fromquickreply" value="1" />
+		<input type="hidden" name="s" value="{vb:raw session.sessionhash}" />
+		<input type="hidden" name="securitytoken" value="{vb:raw bbuserinfo.securitytoken}" />
+		<input type="hidden" name="do" value="insertpm" />
+		<input type="hidden" name="pmid" value="{vb:raw pm.pmid}" />
+		<input type="hidden" name="loggedinuser" value="{vb:raw bbuserinfo.userid}" />
+		<input type="hidden" name="parseurl" value="1" />
+		<input type="hidden" name="signature" value="1" />
+		<input type="hidden" name="title" value="{vb:raw pm.title}" />
+		<input type="hidden" name="recipients" value="{vb:raw pm.recipients}" />
+		<input type="hidden" name="forward" value="0" />
+		<input type="hidden" name="savecopy" value="{vb:raw pm.savecopy}" />
+	
+		<h3 class="blockhead">{vb:rawphrase quick_reply} {vb:rawphrase tolastpm}<a name="quickreply"></a></h3>
+		<div id="qr_error_tbody" class="blockbody errorblock hidden">
+			<h3 class="blocksubhead">{vb:rawphrase errors_occured_when_submitted}</h3>
+			<div class="blockrow error" id="qr_error_td"></div>
+			<div class="blockrow"><a href="javascript://" class="textcontrol" onclick="return qr_hide_errors()">{vb:rawphrase okay}</a></div>
+		</div>
+	
+		<div class="blockbody formcontrols">
+			{vb:raw messagearea}
+			<vb:if condition="$allowed_bbcode"><div class="allowed_bbcode">{vb:raw allowed_bbcode}</div></vb:if>
+		</div>
+		<div class="blockfoot actionbuttons">
+			<div class="group">
+				<input type="submit" value="{vb:rawphrase submit_message}" name="sbutton" id="qr_submit" class="button" accesskey="s" tabindex="1" />
+				<input type="submit" value="{vb:rawphrase go_advanced}" name="preview" class="button" accesskey="x" tabindex="1"  />
+			</div>
+		</div>
+	</form>
+<vb:else /> <div class="block"><h3 class="blockhead">{vb:rawphrase pmreplyself}<a name="quickreply"></a></h3></div>
+	</vb:if>
+	<vb:if condition="$pagenav">
+	
+		<div id="pagination_top" style="padding-bottom:25px;">
+			{vb:raw pagenav}
+		</div>
+		
+	</vb:if>
+
+<div id="showpm">
+		
+	<vb:if condition="$threadpms">
+			<div class="sort_container" style="float:right;padding:4px;font-size:{vb:stylevar big_fontSize}"> {vb:rawphrase sort_results_by} <a href="{vb:raw orderlinks.date}&amp;pp={vb:raw perpage}&amp;page={vb:raw pagenumber}">{vb:rawphrase date}</a> {vb:raw sortarrow.date}
+		</div>
+	<ol id="threadpms">
+		{vb:raw threadpms}
+	</ol>
+	</vb:if>
+	
+</div>
+
+<vb:if condition="$pagenav">
+<div id="below_postlist" style="padding-top:25px;">
+	<div id="pagination_bottom">
+		{vb:raw pagenav}
+	</div>
+</div>
+</vb:if>]]></template>
+		<template name="pm_threadbit" templatetype="template" date="1303969630" username="nitroviper" version="1.0"><![CDATA[<tr><td><vb:if condition="$unread"><strong></vb:if><a href="private.php?{vb:raw session.sessionurl}do=pmthread&amp;parentid={vb:raw parentid}">{vb:raw title}</a><vb:if condition="$unread"></strong></vb:if</td><td><a href="{vb:link member, {vb:raw starterurl}}">{vb:raw startername}</a></td><td>{vb:raw replies}</td><td>{vb:raw updated}</td><td><a href="{vb:link member, {vb:raw enderurl}}">{vb:raw endername}</a></td></tr>]]></template>
+		<template name="pm_threadbit_empty" templatetype="template" date="1303598998" username="nitroviper" version="1.0"><![CDATA[<tr><td colspan="5">{vb:rawphrase no_pmthreads_to_display}</td></tr>]]></template>
+		<template name="pm_threadslist" templatetype="template" date="1303591967" username="nitroviper" version="1.0"><![CDATA[
+
+	<script type="text/javascript">
+	<!--
+		vB_XHTML_Ready.subscribe(
+			function() { register_inlinemod("pmfolderlist", "li", "blockrow", "pm"); }
+		);
+	//-->
+	</script>
+
+	<vb:if condition="$pagenav">
+	<div id="above_postlist">
+		<div id="pagination_top">
+			{vb:raw pagenav}
+		</div>
+		<div class="folderstats">{vb:rawphrase showing_messages_x_to_y_of_z, {vb:raw startmessage}, {vb:raw endmessage}, {vb:raw totalpmthreads}}</div>
+	</div>
+	</vb:if>
+	
+		<div class="block" id="pmfolderlist">
+			<dl class="stats foldercount">
+				<dt class="folder_count">{vb:rawphrase totalthreads}</dt>
+				<dd class="folder_count">{vb:raw totalpmthreads}</dd>
+			</dl>
+			<h2 class="blockhead">{vb:rawphrase pmthreads}</h2>
+			<div class="blockbody settings_form_border pmthreads_table_container">
+			<table class="pmthreads_table">
+<thead><tr><th>{vb:rawphrase title}</th><th>{vb:rawphrase pmstarter}</th><th>{vb:rawphrase replies}</th><th><a href="{vb:raw orderlinks.updated}&amp;pp={vb:raw perpage}&amp;page={vb:raw pagenumber}">{vb:rawphrase last_updated}</a> {vb:raw sortarrow.updated}</th><th>{vb:rawphrase last_post_by}</th></tr></thead>
+<tbody>
+{vb:raw pmthreadbits}
+</tbody>
+
+</table>
+			</div>
+			
+		</div>		
+		
+
+<vb:if condition="$pagenav">
+<div id="below_postlist">
+	<div id="pagination_bottom">
+		{vb:raw pagenav}
+	</div>
+</div>
+</vb:if>
+
+
+<div class="block" id="foldercontrols">
+	<div class="blockhead">
+		<div class="popupgroup" id="folderpicker">
+			<div class="popupmenu">
+				<a href="javascript://" class="popupctrl">{vb:rawphrase jump_to_folder}</a>
+				<ul class="popupbody popuphover">
+					<vb:each from="folderjump" value="folder">
+						<li><a href="private.php?{vb:raw session.sessionurl}folderid={vb:raw folder.id}">{vb:raw folder.name} ({vb:raw folder.count} {vb:raw folder.type})</a></li>
+					</vb:each>
+				</ul>
+			</div>
+		</div>	
+		<h2>{vb:rawphrase folder_controls}</h2>
+	</div>
+	<div class="blockbody settings_form_border">
+		<h3 class="blocksubhead">{vb:rawphrase x_contains_y_z_messages_of_xx, {vb:raw foldername} {vb:raw totalmessages} {vb:raw pmtotal}, {vb:raw pmquota}} (<a href="private.php?{vb:raw session.sessionurl}do=emptyfolder&amp;folderid={vb:raw folderid}">{vb:rawphrase empty_folder}</a>)</h3>
+		<div class="blockrow">
+		
+			<div class="floatcontainer totals">
+				<vb:if condition="$show['thisfoldertotal']">
+					<div class="thisfolder" style="width:{vb:raw tdwidth.folder}%" title="{vb:rawphrase messages_stored_in_folder_x, {vb:raw totalmessages}}"></div>
+				</vb:if>
+				<vb:if condition="$show['allfolderstotal']">
+					<div class="allfolders" style="width:{vb:raw tdwidth.total}%" title="{vb:rawphrase total_messages_in_all_folders_x, {vb:raw bbuserinfo.pmtotal}}"></div>
+				</vb:if>
+				<vb:if condition="$tdwidth['quota'] > 0">
+					<div class="quota" style="width:<vb:if condition="is_browser('ie') AND is_browser('ie') < 8">{vb:math {vb:raw tdwidth.quota}-0.1}<vb:else />{vb:raw tdwidth.quota}</vb:if>%" title="{vb:rawphrase maximum_allowed_messages_x, {vb:raw permissions.pmquota}}"></div>
+				</vb:if>		
+			</div>
+		
+		</div>
+	</div>
+	<div class="blockfoot floatcontainer">
+		<vb:if condition="$receipts['unconfirmed'] OR $receipts['confirmed']">
+			<a href="private.php?{vb:raw session.sessionurl}do=trackpm">{vb:rawphrase you_have_x_and_y_receipts, {vb:raw receipts.confirmed}, {vb:raw receipts.unconfirmed}}</a>
+		</vb:if>	
+	</div>
+</div>
+
+<div id="pmlist_info" class="floatcontainer">
+	<div id="forum_icon_legend" >
+		<h5>{vb:rawphrase icon_legend}</h5>
+		<dl>
+			<dt><img src="{vb:stylevar imgdir_statusicon}/pm_new.png" alt="{vb:rawphrase unread_message}" /></dt><dd>{vb:rawphrase unread_message}</dd>
+			<dt><img src="{vb:stylevar imgdir_statusicon}/pm_old.png" alt="{vb:rawphrase read_message}" /></dt><dd>{vb:rawphrase read_message}</dd>
+			<dt><img src="{vb:stylevar imgdir_statusicon}/pm_replied.png" alt="{vb:rawphrase repliedto_message}" /></dt><dd>{vb:rawphrase repliedto_message}</dd>
+			<dt><img src="{vb:stylevar imgdir_statusicon}/pm_forwarded.png" alt="{vb:rawphrase forwarded_message}" /></dt><dd>{vb:rawphrase forwarded_message}</dd>
+		</dl>
+	</div>
+	<div>
+		<strong>{vb:rawphrase download_all_private_messages_as}</strong>:<br />
+		<a href="private.php?{vb:raw session.sessionurl}do=downloadpm&amp;dowhat=xml">{vb:rawphrase xml}</a> |
+		<a href="private.php?{vb:raw session.sessionurl}do=downloadpm&amp;dowhat=csv">{vb:rawphrase csv}</a> |
+		<a href="private.php?{vb:raw session.sessionurl}do=downloadpm&amp;dowhat=txt">{vb:rawphrase text}</a>
+	</div>
+</div>
+
+{vb:raw forumjump}]]></template>
+		<template name="pm_thread_quickreply" templatetype="template" date="1303508570" username="nitroviper" version="1.0"><![CDATA[<div id="{vb:raw editorid}" class="blockrow texteditor">
+
+	<div class="editor quickreply">
+		<div class="editor_controls floatcontainer" id="{vb:raw editorid}_controls">
+			<ul class="right">
+				<li>
+					<vb:if condition="is_browser('ie') AND !is_browser('mac')">
+						<img src="{vb:stylevar imgdir_editor}/spelling.png" class="imagebutton" id="{vb:raw editorid}_cmd_spelling" width="20" height="20" alt="{vb:rawphrase check_spelling}" />
+					</vb:if>
+					<div>
+						<div><img src="{vb:stylevar imgdir_editor}/resize_0.gif" class="imagebutton" id="{vb:raw editorid}_cmd_resize_0_100" width="21" height="9" alt="{vb:rawphrase decrease_size}" /></div>
+						<div><img src="{vb:stylevar imgdir_editor}/resize_1.gif" class="imagebutton" id="{vb:raw editorid}_cmd_resize_1_100" width="21" height="9" alt="{vb:rawphrase increase_size}" /></div>
+					</div>
+					<vb:if condition="$show['wysiwyg_compatible']"><img src="{vb:stylevar imgdir_editor}/switchmode.png" class="imagebutton" id="{vb:raw editorid}_cmd_switchmode" width="20" height="20" alt="{vb:rawphrase switch_editor_mode}" /></vb:if>
+				</li>
+			</ul>
+			<ul>
+				<li>
+					<img src="{vb:stylevar imgdir_editor}/removeformat.png" class="imagebutton" id="{vb:raw editorid}_cmd_removeformat" width="20" height="20" alt="{vb:rawphrase remove_text_formatting}" />
+				</li>
+				<vb:if condition="$show['basic_bbcode']">
+				<li>
+					<img src="{vb:stylevar imgdir_editor}/bold.png" class="imagebutton" id="{vb:raw editorid}_cmd_bold" width="20" height="20" alt="{vb:raw bold}" />
+					<img src="{vb:stylevar imgdir_editor}/italic.png" class="imagebutton" id="{vb:raw editorid}_cmd_italic" width="20" height="20" alt="{vb:raw bold}" />
+					<img src="{vb:stylevar imgdir_editor}/underline.png" class="imagebutton" id="{vb:raw editorid}_cmd_underline" width="20" height="20" alt="{vb:raw underline}" />
+				</li>
+				</vb:if>				
+				<vb:if condition="$show['color_bbcode']">
+				<li class="popupmenu menubutton colors imagemenu nomouseover nohovermenu" id="{vb:raw editorid}_popup_forecolor" style="position:relative">
+					<img src="{vb:raw vboptions.cleargifurl}" class="vbedit_colorbar" id="{vb:raw editorid}_color_bar" alt="" width="21" height="4" />
+					<div class="popupctrl" id="{vb:raw editorid}_colorfield"><img src="{vb:stylevar imgdir_editor}/color.png" id="{vb:raw editorid}_color_out" class="vbedit_colorbutton" width="21" height="16" alt="" /></div>
+					<div class="editorpopupbody popupbody popuphover">
+						<ul id="colorrow">
+							<li class="colorbutton"><div style="background-color:Black"></div></li>  
+							<li class="colorbutton"><div style="background-color:Sienna"></div></li>  
+							<li class="colorbutton"><div style="background-color:DarkOliveGreen"></div></li> 
+							<li class="colorbutton"><div style="background-color:DarkGreen"></div></li> 
+							<li class="colorbutton"><div style="background-color:DarkSlateBlue"></div></li>  
+							<li class="colorbutton"><div style="background-color:Navy"></div></li> 
+							<li class="colorbutton"><div style="background-color:Indigo"></div></li>  
+							<li class="colorbutton"><div style="background-color:DarkSlateGray"></div></li> 
+							<li class="colorbutton"><div style="background-color:DarkRed"></div></li> 
+							<li class="colorbutton"><div style="background-color:DarkOrange"></div></li> 
+							<li class="colorbutton"><div style="background-color:Olive"></div></li> 
+							<li class="colorbutton"><div style="background-color:Green"></div></li> 
+							<li class="colorbutton"><div style="background-color:Teal"></div></li> 
+							<li class="colorbutton"><div style="background-color:Blue"></div></li> 
+							<li class="colorbutton"><div style="background-color:SlateGray"></div></li> 
+							<li class="colorbutton"><div style="background-color:DimGray"></div></li> 
+							<li class="colorbutton"><div style="background-color:Red"></div></li> 
+							<li class="colorbutton"><div style="background-color:SandyBrown"></div></li> 
+							<li class="colorbutton"><div style="background-color:YellowGreen"></div></li> 
+							<li class="colorbutton"><div style="background-color:SeaGreen"></div></li> 
+							<li class="colorbutton"><div style="background-color:MediumTurquoise"></div></li> 
+							<li class="colorbutton"><div style="background-color:RoyalBlue"></div></li> 
+							<li class="colorbutton"><div style="background-color:Purple"></div></li> 
+							<li class="colorbutton"><div style="background-color:Gray"></div></li> 
+							<li class="colorbutton"><div style="background-color:Magenta"></div></li> 
+							<li class="colorbutton"><div style="background-color:Orange"></div></li> 
+							<li class="colorbutton"><div style="background-color:Yellow"></div></li> 
+							<li class="colorbutton"><div style="background-color:Lime"></div></li> 
+							<li class="colorbutton"><div style="background-color:Cyan"></div></li> 
+							<li class="colorbutton"><div style="background-color:DeepSkyBlue"></div></li> 
+							<li class="colorbutton"><div style="background-color:DarkOrchid"></div></li> 
+							<li class="colorbutton"><div style="background-color:Silver"></div></li> 
+							<li class="colorbutton"><div style="background-color:Pink"></div></li> 
+							<li class="colorbutton"><div style="background-color:Wheat"></div></li> 
+							<li class="colorbutton"><div style="background-color:LemonChiffon"></div></li> 
+							<li class="colorbutton"><div style="background-color:PaleGreen"></div></li> 
+							<li class="colorbutton"><div style="background-color:PaleTurquoise"></div></li> 
+							<li class="colorbutton"><div style="background-color:LightBlue"></div></li> 
+							<li class="colorbutton"><div style="background-color:Plum"></div></li> 
+							<li class="colorbutton"><div style="background-color:White"></div></li> 
+						</ul>																	
+					</div>
+				</li>
+				</vb:if>
+				<vb:if condition="$show['url_bbcode'] OR $show['img_bbcode']">
+				<li>
+					<vb:if condition="$show['url_bbcode']"><img src="{vb:stylevar imgdir_editor}/createlink.png" class="imagebutton" id="{vb:raw editorid}_cmd_createlink" width="20" height="20" alt="{vb:rawphrase insert_link}" /></vb:if>
+					<vb:if condition="$show['img_bbcode']"><img src="{vb:stylevar imgdir_editor}/insertimage.png" class="imagebutton" id="{vb:raw editorid}_cmd_insertimage" width="20" height="20" alt="{vb:rawphrase insert_image}" />
+							<img src="{vb:stylevar imgdir_editor}/video.png" class="imagebutton" id="{vb:raw editorid}_cmd_insertvideo" width="21" height="20" alt="{vb:rawphrase insert_video}" />
+</vb:if>
+				</li>
+				</vb:if>
+				<vb:if condition="$show['quote_bbcode']">
+				<li>
+					<img src="{vb:stylevar imgdir_editor}/quote.png" class="imagebutton" id="{vb:raw editorid}_cmd_wrap0_quote" width="20" height="20" alt="{vb:rawphrase wrap_quote_tags}" />
+				</li>
+				</vb:if>				
+			</ul>
+		</div>
+		
+		<div class="editor_textbox quickreply">
+			<textarea name="message" id="{vb:raw editorid}_textarea" rows="10" cols="10" tabindex="1" dir="{vb:stylevar textdirection}"></textarea>
+		</div>	
+		
+	</div>
+</div>
+
+<input type="hidden" name="wysiwyg" id="{vb:raw editorid}_mode" value="{vb:raw editortype}" />
+<input type="hidden" name="styleid" value="{vb:raw session.styleid}" />
+
+<script type="text/javascript">
+<!--
+	vB_Editor['{vb:raw editorid}'] = new vB_Text_Editor('{vb:raw editorid}', {vb:raw editortype}, '{vb:raw forumid}', '{vb:raw parsesmilie}', undefined, '{vb:raw ajax_extra}', 'forum');
+	var QR_EditorID = '{vb:raw editorid}';
+//-->
+</script>]]></template>
+	</templates>
+	<stylevardfns>
+	</stylevardfns>
+	<stylevars>
+	</stylevars>
+	<plugins>
+		<plugin active="1" executionorder="5">
+			<title>Cache Templates</title>
+			<hookname>cache_templates</hookname>
+			<phpcode><![CDATA[if($vbulletin->options['pmthreads_enable'] AND THIS_SCRIPT == 'private'){
+$cache[] = 'pm_threadbit';
+$cache[] = 'pm_threadslist';
+}
+
+if($vbulletin->options['pmthreads_enable'] AND THIS_SCRIPT == 'private' AND $_REQUEST['do'] == 'pmthread'){
+$cache_temp = array(
+		'pm_messagelistbit_user',
+		'postbit',
+		'postbit_wrapper',
+		'postbit_onlinestatus',
+		'postbit_reputation',
+		'bbcode_code',
+		'bbcode_html',
+		'bbcode_php',
+		'bbcode_quote',
+		'bbcode_video',
+		'im_aim',
+		'im_icq',
+		'im_msn',
+		'im_yahoo',
+		'im_skype',
+		'pm_quickreply',
+'pm_showthread'
+		);
+foreach($cache_temp as $temp){
+$cache[] = $temp;
+}
+}]]></phpcode>
+		</plugin>
+		<plugin active="1" executionorder="5">
+			<title>PM Thread List Page</title>
+			<hookname>private_complete</hookname>
+			<phpcode><![CDATA[//SEOvB Hook Location
+			//Conditional for whether or not to enable the plugin, set to false for now
+			$seovb_pmthreads = false;
+
+			//If this is a request to display the pm message list and we're in the inbox,
+			//Hijack the request to display our pm threadlist page
+			if($page_templater->get_template_name() == 'pm_messagelist' AND $folderid == 0 AND $vbulletin->options['pmthreads_enable']){
+				$seovb_pmthreads = true;
+			}
+
+			if($seovb_pmthreads){
+				
+				//Reclean sort request
+				$vbulletin->input->clean_array_gpc('r',array(
+				'sort' => TYPE_NOHTML,
+				'order' => TYPE_NOHTML
+				));
+				
+				//Clean order and set default
+				if($vbulletin->GPC['order'] != 'asc' AND $vbulletin->GPC['order'] != 'desc'){
+					$vbulletin->GPC['order'] = 
+					($vbulletin->options['pmthreads_threadsorder'] == '1')? 'asc' : 'desc';
+				}
+				
+				//Sort
+				$order = $vbulletin->GPC['order'];
+				$sortfield = $vbulletin->GPC['sort'];
+				$sorturl = 'private.php?' . $vbulletin->session->vars['sessionurl'] . 'folderid=0';
+				$oppositesort = ($order == 'desc' )? 'asc' : 'desc';
+				$orderlinks = array(
+					'updated' => $sorturl . '&amp;sort=updated' . ($sortfield == 'updated' ? '&amp;order=' . $oppositesort : ''),
+				);
+				$templater = vB_Template::create('forumdisplay_sortarrow');
+				$templater->register('oppositesort', $oppositesort);
+				$sortarrow["$sortfield"] = $templater->render();
+				//End Sort
+				
+				//Narrow down per above
+				$throttle = $vbulletin->options['pmthreads_throttle'];
+				
+				//First fetch all pm records from or to this user
+				$pmthreadsids = $db->query_read("
+					SELECT pm.pmid,pm.parentpmid
+					FROM " . TABLE_PREFIX . "pm AS pm
+					LEFT JOIN " . TABLE_PREFIX . "pmtext AS pmtext ON(pmtext.pmtextid = pm.pmtextid)
+					WHERE pm.userid=" . $vbulletin->userinfo['userid'] ."
+					OR pmtext.fromuserid = " . $vbulletin->userinfo['userid'] . "
+					ORDER BY pm.pmid DESC LIMIT $throttle
+				");
+
+				//We need to narrow the fetched records down to just parent pm ids stored here
+				$pmthreadids_array = array();
+
+				
+				
+				while($pmthreadid = $db->fetch_array($pmthreadsids)){
+					
+						if(in_array($pmthreadid['parentpmid'],$pmthreadids_array)){
+							continue;
+						}
+						if($pmthreadid['parentpmid'] == 0){
+							$pmthreadids_array[$pmthreadid['pmid']] = $pmthreadid['pmid'];
+							continue;
+						}
+						$pmthreadids_array[$pmthreadid['pmid']] = $pmthreadid['parentpmid'];
+						
+					
+					
+				}
+				
+				//Check to make sure there are parentpmids we can convert into threads
+				if(count($pmthreadids_array) > 0){
+					
+					//Translate array of all relevant parent pm ids into a query insert for IN()
+					$query_parentids = implode(',',$pmthreadids_array);
+					// Pagination
+					$pagenumber = ($seovb_pagenumber)? $seovb_pagenumber : 1;
+					$perpage = $vbulletin->options['pmthreads_threadspp'];
+					$startat = ($pagenumber - 1) * $perpage;
+					
+					//Fetch an alternate parentpm for deleted parentpms
+					$pmthreads_altids = array();
+					$pmthreads_alternates = $db->query_read("
+						SELECT MIN(pm.pmid) as returnpmid,pm.parentpmid
+						FROM " . TABLE_PREFIX . "pm as pm
+						WHERE NOT EXISTS 
+						(
+						SELECT pm2.pmid FROM " . TABLE_PREFIX . "pm as pm2 
+						WHERE pm2.pmid = pm.parentpmid AND pm2.parentpmid = 0
+						)
+						AND pm.parentpmid IN (".$query_parentids.")
+						GROUP BY pm.parentpmid
+					");
+					while($pmthread_alternate = $db->fetch_array($pmthreads_alternates)){
+						$pmthread_altids[] = $pmthread_alternate['returnpmid'];
+					}
+					if(empty($pmthread_altids)){$pmthread_altids[] = -99999;}
+					$query_altparentids = implode(',',$pmthread_altids);
+					
+					//Fetch number of pm threads for pagination (accounting for deleted pms)
+					$totalpmthreads = $db->query_first(
+						"SELECT COUNT(*) as num
+						FROM " . TABLE_PREFIX . "pm as pm
+						LEFT JOIN " . TABLE_PREFIX . "pmtext as pmtext ON(pmtext.pmtextid = pm.pmtextid)
+						WHERE pm.pmid IN (".$query_parentids.") OR pm.pmid IN (".$query_altparentids.")"
+					);
+					
+					$totalpmthreads = $totalpmthreads['num'];
+					
+					//Check to make sure we have some parent pms to work with
+					if($totalpmthreads == 0){
+						$nopmthreads = true;
+					}
+					else{
+						//Fetch all of our parent pms
+						$pmthreads = $db->query_read("
+							SELECT pm.*, pmtext.*,pm.pmid as specialpmid,
+							(
+							SELECT MAX(pmtext.dateline) FROM " . TABLE_PREFIX . "pm AS pm
+							LEFT JOIN " . TABLE_PREFIX . "pmtext AS pmtext ON(pmtext.pmtextid = pm.pmtextid)
+							WHERE pm.parentpmid IN (specialpmid) OR pm.pmid = specialpmid
+							) as latestreply
+							FROM " . TABLE_PREFIX . "pm AS pm
+							LEFT JOIN " . TABLE_PREFIX . "pmtext AS pmtext ON(pmtext.pmtextid = pm.pmtextid)
+							WHERE pm.pmid IN (".$query_parentids.") OR pm.pmid IN (".$query_altparentids.")
+							ORDER BY latestreply ".($order == 'asc' ? 'asc' : 'desc')."
+							LIMIT $startat, " . $perpage
+						);
+
+						$pmthreadbits = '';
+
+						//Loop through our parent pms
+						while($pmthread = $db->fetch_array($pmthreads)){
+							
+							//Check to see whether this is an alt parentpm, if so we'll need to modify queries
+							$query_parentpmid = (in_array($pmthread['pmid'],$pmthread_altids))?
+							$pmthread['parentpmid'] : $pmthread['pmid'];
+							
+
+							//For each parent pm, fetch information regarding all of its children
+							$replies = $db->query_read("
+								SELECT DISTINCT pmtext.pmtextid, pmtext.dateline,pmtext.fromusername,pmtext.fromuserid
+								FROM " . TABLE_PREFIX . "pm AS pm
+								LEFT JOIN " . TABLE_PREFIX . "pmtext AS pmtext ON(pmtext.pmtextid = pm.pmtextid)
+								WHERE pm.pmid = ". $query_parentpmid . "
+								OR pm.parentpmid = " . $query_parentpmid . "
+								ORDER BY dateline DESC "
+							);
+							
+							//Another query for read status
+							$readstatus = $db->query_first("
+								SELECT MIN(pm.messageread) AS readstatus
+								FROM ".TABLE_PREFIX."pm as pm
+								WHERE (pm.parentpmid = ". $query_parentpmid . " OR pm.pmid = ".$query_parentpmid.")
+								 AND pm.userid = ".$vbulletin->userinfo['userid']);
+								$unread = ($readstatus['readstatus'] == 0 AND !is_null($readstatus['readstatus']))? true : false;
+							
+
+							//Fetch and/or clean information for this pm threadbit
+							$pmthread_replies = ($db->num_rows($replies))? $db->num_rows($replies) - 1 : 0;
+							$last_reply = $db->fetch_array($replies);
+							$pmthread_updated = (!empty($last_reply))? vbdate($vbulletin->options['dateformat'], $last_reply['dateline'], 1) . " " . vbdate($vbulletin->options['timeformat'], $last_reply['dateline'], 1) : 'Hmmm';
+							$pmthread_endername = (!empty($last_reply))? htmlentities($last_reply['fromusername']) : 'Hmmm';
+							$pmthread_title = htmlentities($pmthread['title']);
+							$pmthread_startername = htmlentities($pmthread['fromusername']);
+							$pmthread_starterurl = array('userid' => $pmthread['fromuserid'],'username' => $pmthread_startername);
+							$pmthread_enderurl = array('userid' => $last_reply['fromuserid'],'username' => $pmthread_endername);
+							$pmthread_parentid = (int) $query_parentpmid;
+							
+							//Render and store this pm threadbit
+							$pmthreadbit = vB_Template::create('pm_threadbit');
+							$pmthreadbit->register('startername', $pmthread_startername);
+							$pmthreadbit->register('starterurl', $pmthread_starterurl);
+							$pmthreadbit->register('replies', $pmthread_replies);
+							$pmthreadbit->register('title', $pmthread_title);
+							$pmthreadbit->register('updated', $pmthread_updated);
+							$pmthreadbit->register('endername', $pmthread_endername);
+							$pmthreadbit->register('enderurl', $pmthread_enderurl);
+							$pmthreadbit->register('parentid', $pmthread_parentid);
+							$pmthreadbit->register('unread', $unread);
+							$pmthreadbits .= $pmthreadbit->render();
+
+						}
+						//More pagination values
+						$startmessage = vb_number_format($startat + 1);
+						$endmessage = vb_number_format(($pagenumber * $perpage) > $totalpmthreads ? $totalpmthreads : ($pagenumber * $perpage));
+
+						//Construct the page navigation
+						$sorturl = "sort=$sortfield&amp;order=$order";
+						$pagenav = construct_page_nav($pagenumber, $perpage, $totalpmthreads, 'private.php?' . $vbulletin->session->vars['sessionurl'] . 'folderid=' . $vbulletin->GPC['folderid'] . '&amp;pp=' . $perpage . '&amp;' . $sorturl);
+					}
+				}else {
+					$nopmthreads = true;
+				}
+				//If we have no pm threads to display, make the failure clean
+				if($nopmthreads){
+					$no_pmthreads = vB_Template::create('pm_threadbit_empty');
+					$pmthreadbits = $no_pmthreads->render();
+				}
+				
+				//Render our pm thread list template
+				$page_templater = vB_Template::create('pm_threadslist');
+				$page_templater->register('pmthreadbits', $pmthreadbits);
+				$page_templater->register('sortarrow', $sortarrow);
+				$page_templater->register('orderlinks', $orderlinks);
+				$page_templater->register('totalpmthreads', $totalpmthreads);
+				$page_templater->register('folderid', $folderid);
+				$page_templater->register('folderjump', $folderjump);
+				$page_templater->register('foldername', $foldername);
+				$page_templater->register('forumjump', $forumjump);
+				$page_templater->register('gobutton', $gobutton);
+				$page_templater->register('messagelist_periodgroups', $messagelist_periodgroups);
+				$page_templater->register('orderlinks', $orderlinks);
+				$page_templater->register('pagenav', $pagenav);
+				$page_templater->register('pagenumber', $pagenumber);
+				$page_templater->register('permissions', $permissions);
+				$page_templater->register('perpage', $perpage);
+				$page_templater->register('pmquota', $pmquota);
+				$page_templater->register('pmtotal', $pmtotal);
+				$page_templater->register('receipts', $receipts);
+				$page_templater->register('sortarrow', $sortarrow);
+				$page_templater->register('sortfilter', $sortfilter);
+				$page_templater->register('tdwidth', $tdwidth);
+				$page_templater->register('totalmessages', $totalmessages);
+				$page_templater->register('startmessage', $startmessage);
+				$page_templater->register('endmessage', $endmessage);
+				//Include our css
+				$includecss['pmthreads'] = 'pmthreads.css';
+			}]]></phpcode>
+		</plugin>
+		<plugin active="1" executionorder="5">
+			<title>Store GPC Page Number</title>
+			<hookname>private_messagelist_start</hookname>
+			<phpcode><![CDATA[//SEOvB Hook Location
+			//for skipping filtering
+			$seovb_pagenumber = $vbulletin->GPC['pagenumber'];]]></phpcode>
+		</plugin>
+		<plugin active="1" executionorder="5">
+			<title>PM Thread Page</title>
+			<hookname>private_start</hookname>
+			<phpcode><![CDATA[//SEOvB Hook Location
+		//A variable tracking whether we'll implement this mod
+		$seovb_pmposts = $vbulletin->options['pmthreads_enable'];
+		//If a request was sent to display a pm thread and we're implementing the mod, and we have a valid parent pm id, proceed
+		if($_REQUEST['do'] == 'pmthread' AND !empty($_REQUEST['parentid']) AND is_numeric($_REQUEST['parentid']) AND $seovb_pmposts){
+			//Clean input for this page
+			$vbulletin->input->clean_array_gpc('r',array(
+				'sort' => TYPE_NOHTML,
+				'order' => TYPE_NOHTML,
+				'parentid' => TYPE_INT,
+				'pagenumber' => TYPE_INT,
+				'perpage' => TYPE_INT
+			));
+			$pmthread_parentid = $vbulletin->GPC['parentid'];
+
+			//Check if user is involved in this thread
+			$userinvolved = $db->query_read("
+					SELECT pm.*, pmtext.*
+					FROM " . TABLE_PREFIX . "pm AS pm
+					LEFT JOIN " . TABLE_PREFIX . "pmtext AS pmtext ON(pmtext.pmtextid = pm.pmtextid)
+					WHERE (pm.parentpmid=" . $pmthread_parentid . "
+					OR pm.pmid = " . $pmthread_parentid . ")
+					AND (pm.userid=" . $vbulletin->userinfo['userid'] . "
+					OR pmtext.fromuserid = ".$vbulletin->userinfo['userid'] .")"
+			);
+					
+			//If user is not involved, deny permission to view the thread
+			if($db->num_rows($userinvolved) < 1){
+				eval(standard_error(fetch_error('pmthread_denied')));
+			}
+			
+			//Require scripts for displaying posts and for quick reply
+			require_once(DIR . '/includes/class_postbit.php');
+			require_once(DIR . '/includes/functions_bigthree.php');
+			require_once(DIR . '/includes/functions_newpost.php');
+			require_once(DIR . '/includes/functions_editor.php');
+			
+			//Include css for displaying ps as postbits
+			$includecss['postbit'] = 'postbit.css';
+			$includeiecss['postbit'] = 'postbit-ie.css';
+				
+
+			//Clean sorting order and set default
+			if($vbulletin->GPC['order'] != 'asc' AND $vbulletin->GPC['order'] != 'desc'){
+				//default
+				$vbulletin->GPC['order'] =
+				 ($vbulletin->options['pmthreads_postsorder'] == '1' )? 'asc' : 'desc';
+			}
+			
+			//Sorting
+			$order = $vbulletin->GPC['order'];
+			$sortfield = $vbulletin->GPC['sort'];
+			$sorturl = 'private.php?' . $vbulletin->session->vars['sessionurl'] . 'do=pmthread&amp;parentid='.$pmthread_parentid;
+			$oppositesort = ($order == 'desc' )? 'asc' : 'desc';
+			$orderlinks = array(
+				'date' => $sorturl . '&amp;sort=date' . ($sortfield == 'date' ? '&amp;order=' . $oppositesort : ''),
+			);
+			$templater = vB_Template::create('forumdisplay_sortarrow');
+			$templater->register('oppositesort', $oppositesort);
+			$sortarrow["$sortfield"] = $templater->render();
+			//End Sorting
+				
+			//Set quick reply to always false to remove extraneous reply buttons
+			$show['quickreply'] = false;
+			//But still show the quick reply box
+			$show['custom_quickreply'] = true;
+			
+			//Construct the quick reply editor
+			$editorid = construct_edit_toolbar('',false,'privatemessage',$vbulletin->options['privallowsmilies'],true,false,'qr_pm');
+
+			//Attempt to fetch the information for the last pm in the thread (for quick reply)
+			$lastpm = $db->query_first_slave("
+				SELECT
+					pm.*, pmtext.*,
+					" . iif($vbulletin->options['privallowicons'], "icon.title AS icontitle, icon.iconpath,") . "
+					IF(ISNULL(pmreceipt.pmid), 0, 1) AS receipt, pmreceipt.readtime, pmreceipt.denied,
+					sigpic.userid AS sigpic, sigpic.dateline AS sigpicdateline, sigpic.width AS sigpicwidth, sigpic.height AS sigpicheight
+				FROM " . TABLE_PREFIX . "pm AS pm
+				LEFT JOIN " . TABLE_PREFIX . "pmtext AS pmtext ON(pmtext.pmtextid = pm.pmtextid)
+				" . iif($vbulletin->options['privallowicons'], "LEFT JOIN " . TABLE_PREFIX . "icon AS icon ON(icon.iconid = pmtext.iconid)") . "
+				LEFT JOIN " . TABLE_PREFIX . "pmreceipt AS pmreceipt ON(pmreceipt.pmid = pm.pmid)
+				LEFT JOIN " . TABLE_PREFIX . "sigpic AS sigpic ON(sigpic.userid = pmtext.fromuserid)
+				WHERE (pm.parentpmid=" . $pmthread_parentid . " OR (pm.parentpmid=0 AND pm.pmid=".$pmthread_parentid."))
+				AND pm.userid = ".$vbulletin->userinfo['userid']."  AND pm.folderid != -1
+				ORDER BY pm.pmid DESC
+			");
+
+			//Attempt to fetch reply information for this message
+			//Failure Mode
+			if(count($lastpm) <= 0 OR !is_array($lastpm)){
+				$lastpm = $db->query_first_slave("
+				SELECT
+					pm.*, pmtext.*,
+					" . iif($vbulletin->options['privallowicons'], "icon.title AS icontitle, icon.iconpath,") . "
+					IF(ISNULL(pmreceipt.pmid), 0, 1) AS receipt, pmreceipt.readtime, pmreceipt.denied,
+					sigpic.userid AS sigpic, sigpic.dateline AS sigpicdateline, sigpic.width AS sigpicwidth, sigpic.height AS sigpicheight
+				FROM " . TABLE_PREFIX . "pm AS pm
+				LEFT JOIN " . TABLE_PREFIX . "pmtext AS pmtext ON(pmtext.pmtextid = pm.pmtextid)
+				" . iif($vbulletin->options['privallowicons'], "LEFT JOIN " . TABLE_PREFIX . "icon AS icon ON(icon.iconid = pmtext.iconid)") . "
+				LEFT JOIN " . TABLE_PREFIX . "pmreceipt AS pmreceipt ON(pmreceipt.pmid = pm.pmid)
+				LEFT JOIN " . TABLE_PREFIX . "sigpic AS sigpic ON(sigpic.userid = pmtext.fromuserid)
+				WHERE (pm.parentpmid=" . $pmthread_parentid . " OR (pm.parentpmid=0 AND pm.pmid=".$pmthread_parentid."))   AND pm.folderid != -1
+				ORDER BY pm.pmid DESC
+				
+			");}
+				if(count($lastpm) > 0 AND is_array($lastpm)){
+					$lastpm = fetch_privatemessage_reply($lastpm);
+				}
+				
+			
+			//Isn't working for some reason, but doesn't matter in thread mode
+			$pm['savecopy'] = $vbulletin->userinfo['pmdefaultsavecopy'];
+
+			//Find number of posts in this thread
+			$num_posts = $vbulletin->db->query_read_slave("
+				SELECT DISTINCT pm.*, pmtext.*
+				FROM " . TABLE_PREFIX . "pm AS pm
+				LEFT JOIN " . TABLE_PREFIX . "pmtext AS pmtext ON(pmtext.pmtextid = pm.pmtextid)
+				WHERE (pm.parentpmid=" . $pmthread_parentid . "
+						OR pm.pmid = " . $pmthread_parentid . ")
+				GROUP BY pmtext.pmtextid
+				ORDER BY pmtext.dateline DESC
+			");
+			
+			//Pagination
+			$pagenumber = ($vbulletin->GPC['pagenumber'])? $vbulletin->GPC['pagenumber'] : 1;
+			$totalpmposts = $db->num_rows($num_posts);
+			$perpage = $vbulletin->options['pmthreads_postspp'];
+			$startat = ($pagenumber - 1) * $perpage;
+
+			//Fetch pms in this thread as posts
+			$threadresult = $vbulletin->db->query_read_slave("
+				SELECT DISTINCT pm.*, pmtext.*
+				FROM " . TABLE_PREFIX . "pm AS pm
+				LEFT JOIN " . TABLE_PREFIX . "pmtext AS pmtext ON(pmtext.pmtextid = pm.pmtextid)
+				WHERE (pm.parentpmid=" . $pmthread_parentid . "
+						OR pm.pmid = " . $pmthread_parentid . ")
+				GROUP BY pmtext.pmtextid
+				ORDER BY pmtext.dateline ".($order == 'asc'? 'asc' : 'desc')."
+				LIMIT $startat, " . $perpage
+			);
+			//Array for storing pm textids to update read status
+			$update_read = array();
+			
+			//Most of this code from view pm history section
+			if ($vbulletin->db->num_rows($threadresult))
+			{
+				$threadpms = '';
+
+				while ($threadpm = $vbulletin->db->fetch_array($threadresult))
+				{
+					//Store pm text ids for updating read status for this user
+					$update_read[] = (int) $threadpm['pmtextid'];
+					
+					//Turns off extraneous reply links to prevent system confusion
+					$show['multiquote_post'] = false;
+					$show['pmsendlink'] = false;
+					
+					$postbit_factory = new vB_Postbit_Factory();
+					$postbit_factory->registry =& $vbulletin;
+					$postbit_factory->cache = array();
+					$postbit_factory->bbcode_parser = new vB_BbCodeParser($vbulletin, fetch_tag_list());
+
+					$postbit_obj =& $postbit_factory->fetch_postbit('pm');
+					$threadpms .= $postbit_obj->construct_postbit($threadpm);
+				}
+			}
+			//Update read status of all pms viewed
+			if(count($update_read) > 0){
+				$update_query = implode(',',$update_read);}
+			else {
+				$update_query = "0";
+			}
+				$db->query_write("UPDATE ".TABLE_PREFIX."pm SET messageread = 1 WHERE pmtextid IN ($update_query) AND userid = ".$vbulletin->userinfo['userid']);
+			build_pm_counters();
+			
+			//Construct the page navigation
+			$sorturl = 'sort='.$sortfield.'&amp;order='.$order;
+			$pagenav = construct_page_nav($pagenumber, $perpage, $totalpmposts, 'private.php?' . $vbulletin->session->vars['sessionurl'] . 'do=pmthread&amp;parentid=' . $pmthread_parentid . '&amp;pp=' . $perpage . '&amp;' . $sorturl);
+
+			$page_templater = vB_Template::create('pm_showthread');
+			$page_templater->register('pagenav', $pagenav);
+			$page_templater->register('sortarrow', $sortarrow);
+			$page_templater->register('orderlinks', $orderlinks);
+			$page_templater->register('perpage', $perpage);
+			$page_templater->register('pagenumber', $pagenumber);
+			$page_templater->register('allowed_bbcode', $allowed_bbcode);
+			$page_templater->register('bccrecipients', $bccrecipients);
+			$page_templater->register('ccrecipients', $ccrecipients);
+			$page_templater->register('editorid', $editorid);
+			$page_templater->register('messagearea', $messagearea);
+			$page_templater->register('pm', $lastpm);
+			$page_templater->register('postbit', $postbit);
+			$page_templater->register('receipt_question_js', $receipt_question_js);
+			$page_templater->register('threadpms', $threadpms);
+			$page_templater->register('vBeditTemplate', $vBeditTemplate);
+						
+
+		}]]></phpcode>
+		</plugin>
+	</plugins>
+	<phrases>
+		<phrasetype name="Control Panel Options" fieldname="cpoption">
+			<phrase name="pmthreads_asc" date="1303593200" username="nitroviper" version="1.0"><![CDATA[Ascending]]></phrase>
+			<phrase name="pmthreads_asc_desc" date="1303593043" username="nitroviper" version="1.0"><![CDATA[Ascending / Descending]]></phrase>
+			<phrase name="pmthreads_desc" date="1303593220" username="nitroviper" version="1.0"><![CDATA[Descending]]></phrase>
+		</phrasetype>
+		<phrasetype name="Error Messages" fieldname="error">
+			<phrase name="pmthread_denied" date="1303518059" username="nitroviper" version="1.0"><![CDATA[You do not have permission to view this PM thread.]]></phrase>
+		</phrasetype>
+		<phrasetype name="GLOBAL" fieldname="global">
+			<phrase name="last_updated" date="1303439129" username="nitroviper" version="1.0"><![CDATA[Last Updated]]></phrase>
+			<phrase name="no_pmthreads_to_display" date="1303521383" username="nitroviper" version="1.0"><![CDATA[There are no PM threads to display]]></phrase>
+			<phrase name="pmposts" date="1303507506" username="nitroviper" version="1.0"><![CDATA[PM Posts]]></phrase>
+			<phrase name="pmreplyself" date="1303520019" username="nitroviper" version="1.0"><![CDATA[You cannot reply to yourself. Please reply to another user's PM.]]></phrase>
+			<phrase name="pmstarter" date="1303438633" username="nitroviper" version="1.0"><![CDATA[PM Starter]]></phrase>
+			<phrase name="pmthreads" date="1303436471" username="nitroviper" version="1.0"><![CDATA[PM Threads]]></phrase>
+			<phrase name="tolastpm" date="1303507902" username="nitroviper" version="1.0"><![CDATA[(To Last PM in the Thread)]]></phrase>
+			<phrase name="totalthreads" date="1303436582" username="nitroviper" version="1.0"><![CDATA[Total Threads]]></phrase>
+		</phrasetype>
+		<phrasetype name="vBulletin Settings" fieldname="vbsettings">
+			<phrase name="setting_pmthreads_enable_desc" date="1303596374" username="nitroviper" version="1.0"><![CDATA[Enable or disable the viewing of PMs as threads]]></phrase>
+			<phrase name="setting_pmthreads_enable_title" date="1303596374" username="nitroviper" version="1.0"><![CDATA[Enable Threaded PMs]]></phrase>
+			<phrase name="setting_pmthreads_postsorder_desc" date="1305998459" username="nitroviper" version="1.0"><![CDATA[The default sort order for the PM posts in the PM thread page.]]></phrase>
+			<phrase name="setting_pmthreads_postsorder_title" date="1305998459" username="nitroviper" version="1.0"><![CDATA[PM Posts Default Sort Order]]></phrase>
+			<phrase name="setting_pmthreads_postspp_desc" date="1303596861" username="nitroviper" version="1.0"><![CDATA[The default number of PM posts displayed per page in the PM thread page]]></phrase>
+			<phrase name="setting_pmthreads_postspp_title" date="1303596861" username="nitroviper" version="1.0"><![CDATA[PM Posts Default Per Page]]></phrase>
+			<phrase name="setting_pmthreads_threadsorder_desc" date="1304366432" username="nitroviper" version="1.0"><![CDATA[The default sort order for the PM thread list]]></phrase>
+			<phrase name="setting_pmthreads_threadsorder_title" date="1304366432" username="nitroviper" version="1.0"><![CDATA[PM Thread List Default Sort Order]]></phrase>
+			<phrase name="setting_pmthreads_threadspp_desc" date="1303596827" username="nitroviper" version="1.0"><![CDATA[The default number of PM threads displayed per page in the PM thread list]]></phrase>
+			<phrase name="setting_pmthreads_threadspp_title" date="1303596827" username="nitroviper" version="1.0"><![CDATA[PM Thread List Default Per Page]]></phrase>
+			<phrase name="setting_pmthreads_throttle_desc" date="1303596827" username="nitroviper" version="1.0"><![CDATA[Decreaing this value should increase PM Panel load speed]]></phrase>
+			<phrase name="setting_pmthreads_throttle_title" date="1303596827" username="nitroviper" version="1.0"><![CDATA[Throttle PMs]]></phrase>
+			<phrase name="settinggroup_pm_threads" date="1303592304" username="nitroviper" version="1.0"><![CDATA[PM Threads]]></phrase>
+		</phrasetype>
+	</phrases>
+	<options>
+		<settinggroup name="pm_threads" displayorder="1020">
+			<setting varname="pmthreads_enable" displayorder="1">
+				<datatype>boolean</datatype>
+				<optioncode>yesno</optioncode>
+				<defaultvalue>1</defaultvalue>
+			</setting>
+			<setting varname="pmthreads_threadsorder" displayorder="10">
+				<datatype>number</datatype>
+				<optioncode><![CDATA[<label for=\"asct\"><input type=\"radio\" name=\"setting[$setting[varname]]\" id=\"asct\" value=\"1\" tabindex=\"1\" " .($setting['value'] == 1 ?  'checked="checked"':'') . " />$vbphrase[pmthreads_asc]</label><br />
+
+	<label for=\"desc\"><input type=\"radio\" name=\"setting[$setting[varname]]\" id=\"desc\" value=\"2\" tabindex=\"1\" " .($setting['value'] == 2 ?  'checked="checked"':'') ." />$vbphrase[pmthreads_desc]</label>]]></optioncode>
+				<defaultvalue>2</defaultvalue>
+			</setting>
+			<setting varname="pmthreads_threadspp" displayorder="20">
+				<datatype>number</datatype>
+				<optioncode><![CDATA[<input type=\"textbox\" size=\"2\" name=\"setting[$setting[varname]]\" id=\"numthreads\" value=\" " .$setting['value'] . "\" tabindex=\"1\" /><br />]]></optioncode>
+				<defaultvalue>20</defaultvalue>
+			</setting>
+			<setting varname="pmthreads_throttle" displayorder="40">
+				<datatype>number</datatype>
+				<optioncode><![CDATA[<input type=\"textbox\" size=\"2\" name=\"setting[$setting[varname]]\" id=\"throttle\" value=\" " .$setting['value'] . "\" tabindex=\"1\" /><br />]]></optioncode>
+				<defaultvalue>500</defaultvalue>
+			</setting>
+			<setting varname="pmthreads_postsorder" displayorder="30">
+				<datatype>number</datatype>
+				<optioncode><![CDATA[<label for=\"ascp\"><input type=\"radio\" name=\"setting[$setting[varname]]\" id=\"ascp\" value=\"1\" tabindex=\"1\" " .($setting['value'] == 1 ?  'checked="checked"':'') . " />$vbphrase[pmthreads_asc]</label><br />
+
+	<label for=\"descp\"><input type=\"radio\" name=\"setting[$setting[varname]]\" id=\"descp\" value=\"2\" tabindex=\"1\" " .($setting['value'] == 2 ?  'checked="checked"':'') ." />$vbphrase[pmthreads_desc]</label>]]></optioncode>
+				<defaultvalue>2</defaultvalue>
+			</setting>
+			<setting varname="pmthreads_postspp" displayorder="40">
+				<datatype>number</datatype>
+				<optioncode><![CDATA[<input type=\"textbox\" size=\"2\" name=\"setting[$setting[varname]]\" id=\"numthreads\" value=\" " .$setting['value'] . "\" tabindex=\"1\" /><br />]]></optioncode>
+				<defaultvalue>20</defaultvalue>
+			</setting>
+		</settinggroup>
+	</options>
+	<helptopics>
+	</helptopics>
+	<cronentries>
+	</cronentries>
+	<faqentries>
+	</faqentries>
+</product>
